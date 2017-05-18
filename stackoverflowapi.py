@@ -17,6 +17,12 @@ def getCodeInfo(body):
 	numPreCode = len(preCode)
 	linesPreCode = map(lambda x: x.count("\n"), preCode)
 	info["linesInEachPreCodeSnippet"] = linesPreCode
+	info["totalLinesOfCode"] = sum(linesPreCode)
+	info["numberOfCodeSnippets"] = len(linesPreCode)
+	if(len(linesPreCode) > 0):
+		info["averageLengthOfCodeSnippet"] = float(sum(linesPreCode))/len(linesPreCode)
+	else:
+		info["averageLengthOfCodeSnippet"] = 0
 
 	# codeStartTag = "([^>]<code>)|(^<code>)"
 	# codeEndTag = "(<\/code>[^<])|(<\/code>$)"
@@ -74,7 +80,6 @@ def findTextBetweenTags(body, startTagString, endTagString):
 
 
 def getStats(body):
-	# print body
 	info = getCodeInfo(body)
 	return info
 
@@ -87,7 +92,9 @@ urlForQuestions = url+ customFiltering+ "&filter=withbody"
 
 r = pickle.load(open("sortVotes.txt"))
 
-pp.pprint(r)
+questionsWithAccepted = []
+questionsWithOut = []
+
 
 for questionObject in r['items']:
 	#print questionObject.keys()
@@ -95,17 +102,16 @@ for questionObject in r['items']:
 
 	#print questionObject['score']
 	body = questionObject['body']
-	info = getStats(body)
 	if "accepted_answer_id" in questionObject:
-		info["answerId"] = questionObject["accepted_answer_id"]
-		#answerInfo = getAnswerStats()	
-		#info += answerInfo
-
+		info = getStats(body)
+		info["acceptedAnswerId"] = questionObject["accepted_answer_id"]
+		questionsWithAccepted.append(info)
 	else:
-		info["answerId"] = None
+		info = getStats(body)
+		questionsWithOut.append(info)
+		
 
-
-	pp.pprint(info)
+pp.pprint(questionsWithAccepted)
 
 
 
