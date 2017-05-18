@@ -7,10 +7,9 @@ from BeautifulSoup import BeautifulSoup
 import re
 
 def getCodeInfo(body):
-	print "code tag locs"
 	info = {}
 
-	info["body"] = body
+	# info["body"] = body
 
 	preCodeStartTag = "<pre><code>"
 	preCodeEndTag = "<\/code><\/pre>"
@@ -37,7 +36,7 @@ def getCodeInfo(body):
 
 	english = getEnglish(body)
 
-	info["bodyText"] = english
+	# info["bodyText"] = english
 	info["englishNumChars"] = len(english)
 	info["englishNumWords"] = english.count(' ')
 
@@ -79,17 +78,16 @@ def getStats(body):
 	info = getCodeInfo(body)
 	return info
 
-url = "https://api.stackexchange.com/2.2/info?site=stackoverflow"
-urlForQuestions = "https://api.stackexchange.com/2.2/questions?fromdate=1494288000&todate=1494892800&order=desc&sort=activity&tagged=python&site=stackoverflow&filter=withbody"
+url = "https://api.stackexchange.com"
+customFiltering = "/2.2/questions?fromdate=1493596800&todate=1495065600&order=desc&sort=votes&tagged=python&site=stackoverflow"
+urlForQuestions = url+ customFiltering+ "&filter=withbody"
 
 # r = requests.get(urlForQuestions).json()
-# pickle.dump(r, open("stackoverflowJSON.txt", "wr"))
+# pickle.dump(r, open("sortVotes.txt", "wr"))
 
-r = pickle.load(open("stackoverflowJSON.txt"))
+r = pickle.load(open("sortVotes.txt"))
 
-questions = []
-
-
+pp.pprint(r)
 
 for questionObject in r['items']:
 	#print questionObject.keys()
@@ -98,6 +96,15 @@ for questionObject in r['items']:
 	#print questionObject['score']
 	body = questionObject['body']
 	info = getStats(body)
+	if "accepted_answer_id" in questionObject:
+		info["answerId"] = questionObject["accepted_answer_id"]
+		#answerInfo = getAnswerStats()	
+		#info += answerInfo
+
+	else:
+		info["answerId"] = None
+
+
 	pp.pprint(info)
 
 
