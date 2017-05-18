@@ -3,7 +3,7 @@ import requests
 import json
 import pickle
 import pprint as pp
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 import re
 
 def getCodeInfo(body):
@@ -62,13 +62,10 @@ def getEnglish(body):
 	body = BeautifulSoup(body).text
 	return body
 
-
-
-
 def findTextBetweenTags(body, startTagString, endTagString):
 	startTag =  [t.start() for t in re.finditer(startTagString, body)]
 	endTag =  [t.start() for t in re.finditer(endTagString, body)]
-	
+
 	inBetween = [];
 
 	for i in range(len(startTag)):
@@ -77,7 +74,6 @@ def findTextBetweenTags(body, startTagString, endTagString):
 		inBetween.append(code)
 
 	return inBetween
-
 
 def getStats(body):
 	info = getCodeInfo(body)
@@ -95,7 +91,6 @@ r = pickle.load(open("sortVotes.txt"))
 questionsWithAccepted = []
 questionsWithOut = []
 
-
 for questionObject in r['items']:
 	#print questionObject.keys()
 	questionInfo = {};
@@ -109,15 +104,9 @@ for questionObject in r['items']:
 	else:
 		info = getStats(body)
 		questionsWithOut.append(info)
-		
 
 pp.pprint(questionsWithAccepted)
 
+# pickle.dump(questionsWithAccepted, open("questionsWithAccepted.txt", "wr"))
 
-
-
-
-
-# for key in r.items:
-# 	print key
-# print urllib2.urlopen(url).read()index, 
+# API call: input accepted answer ids (already part of the info dictionary); add score as a column to the dataframe
