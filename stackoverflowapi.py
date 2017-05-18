@@ -59,7 +59,7 @@ def getEnglish(body):
 	body = re.sub(codeRegex, '', body)
 	body = re.sub(linkRegex, '', body)
 
-	body = BeautifulSoup(body).text
+	body = BeautifulSoup(body, "lxml").text
 	return body
 
 def findTextBetweenTags(body, startTagString, endTagString):
@@ -79,6 +79,12 @@ def getStats(body):
 	info = getCodeInfo(body)
 	return info
 
+def getAcceptedAnswerScore(acceptedAnswers, current_accepted_answer_id):
+	for d in acceptedAnswers['items']:
+		if d['answer_id'] == current_accepted_answer_id:
+			return d['score']
+	return None
+
 url = "https://api.stackexchange.com"
 customFiltering = "/2.2/questions?fromdate=1493596800&todate=1495065600&order=desc&sort=votes&tagged=python&site=stackoverflow"
 urlForQuestions = url+ customFiltering+ "&filter=withbody"
@@ -87,9 +93,11 @@ urlForQuestions = url+ customFiltering+ "&filter=withbody"
 # pickle.dump(r, open("sortVotes.txt", "wr"))
 
 r = pickle.load(open("sortVotes.txt"))
+r2 = pickle.load(open("acceptedAnswers.txt"))
 
 questionsWithAccepted = []
 questionsWithOut = []
+acceptedAnswerIds = "" # re: Getting the answers -- this string will be used for the API call for accepted answers.
 
 for questionObject in r['items']:
 	#print questionObject.keys()
@@ -99,14 +107,28 @@ for questionObject in r['items']:
 	body = questionObject['body']
 	if "accepted_answer_id" in questionObject:
 		info = getStats(body)
+		info["link"] = questionObject["link"]
 		info["acceptedAnswerId"] = questionObject["accepted_answer_id"]
+		acceptedAnswerIds += str(questionObject["accepted_answer_id"]) + ";" # answers-by-ids documentation page says "{ids} can contain up to 100 semicolon delimited ids"
+
+		info["acceptedAnswerScore"] = getAcceptedAnswerScore(r2, questionObject["accepted_answer_id"])
 		questionsWithAccepted.append(info)
 	else:
 		info = getStats(body)
 		questionsWithOut.append(info)
 
 pp.pprint(questionsWithAccepted)
-
 # pickle.dump(questionsWithAccepted, open("questionsWithAccepted.txt", "wr"))
 
-# API call: input accepted answer ids (already part of the info dictionary); add score as a column to the dataframe
+### Getting the answers -- https://api.stackexchange.com/docs/answers-by-ids
+# print acceptedAnswerIds[:-1] # indexing [:-1] because the API call doesn't want the {ids} string to end with a semicolon
+urlForAcceptedAnswerIds = url + '/2.2/answers/' + acceptedAnswerIds[:-1]  + '?order=desc&sort=activity&site=stackoverflow&filter=withbody'
+# print urlForAcceptedAnswerIds
+# r2 = requests.get(urlForAcceptedAnswerIds).json()
+# pickle.dump(r2, open("acceptedAnswers.txt", "wr"))
+r2 = pickle.load(open("acceptedAnswers.txt"))
+# pp.pprint(r2['items'])
+# pp.pprint(r2['items'][0]["answer_id"])
+# print getAcceptedAnswerScore(r2, 44012152)
+# print getAcceptedAnswerScore(r2, 43723651)
+# print getAcceptedAnswerScore(r2, 43988809)
