@@ -16,7 +16,7 @@ def getCodeInfo(body):
 	preCode = findTextBetweenTags(body, preCodeStartTag, preCodeEndTag)
 	numPreCode = len(preCode)
 	linesPreCode = map(lambda x: x.count("\n"), preCode)
-	info["linesInEachPreCodeSnippet"] = linesPreCode
+	# info["linesInEachPreCodeSnippet"] = linesPreCode
 	info["totalLinesOfCode"] = sum(linesPreCode)
 	info["numberOfCodeSnippets"] = len(linesPreCode)
 	if(len(linesPreCode) > 0):
@@ -62,13 +62,10 @@ def getEnglish(body):
 	body = BeautifulSoup(body).text
 	return body
 
-
-
-
 def findTextBetweenTags(body, startTagString, endTagString):
 	startTag =  [t.start() for t in re.finditer(startTagString, body)]
 	endTag =  [t.start() for t in re.finditer(endTagString, body)]
-	
+
 	inBetween = [];
 
 	for i in range(len(startTag)):
@@ -78,48 +75,74 @@ def findTextBetweenTags(body, startTagString, endTagString):
 
 	return inBetween
 
-
 def getStats(body):
 	info = getCodeInfo(body)
 	return info
 
-url = "https://api.stackexchange.com"
-customFiltering = "/2.2/questions?fromdate=1493596800&todate=1495065600&order=desc&sort=votes&tagged=python&site=stackoverflow"
-urlForQuestions = url+ customFiltering+ "&filter=withbody"
-
-# r = requests.get(urlForQuestions).json()
-# pickle.dump(r, open("sortVotes.txt", "wr"))
-
-r = pickle.load(open("sortVotes.txt"))
-
-questionsWithAccepted = []
-questionsWithOut = []
+def getAcceptedAnswerScore(acceptedAnswers, current_accepted_answer_id):
+	for d in acceptedAnswers['items']:
+		if d['answer_id'] == current_accepted_answer_id:
+			return d['score']
+	return None
 
 
-for questionObject in r['items']:
-	# print questionObject.keys()
-	questionInfo = {};
 
-	#print questionObject['score']
-	body = questionObject['body']
-	if "accepted_answer_id" in questionObject:
-		info = getStats(body)
-		info["viewCount"] = questionObject["view_count"]
-		info["acceptedAnswerId"] = questionObject["accepted_answer_id"]
-		questionsWithAccepted.append(info)
-	else:
-		info = getStats(body)
-		info["viewCount"] = questionObject["view_count"]
-		questionsWithOut.append(info)
+
+ # re: Getting the answers -- this string will be used for the API call for accepted answers.
+allquestions = []
+for i in range(5):
+	i = i+1
+	url = "https://api.stackexchange.com"
+	customFiltering = "/2.2/questions?page="+str(i)+"&pagesize=100&order=desc&sort=votes&tagged=python&site=stackoverflow&filter=!9YdnSIN18"
+	urlForQuestions = url+ customFiltering
+
+	# r = requests.get(urlForQuestions).json()
+	# pickle.dump(r, open("sortVotes"+str(i)+".txt", "wr"))
+
+	r = pickle.load(open("sortVotes"+str(i)+".txt"))
+	r2 = pickle.load(open("acceptedAnswers"+str(i)+".txt"))
+	questionsWithAccepted = []
+	questionsWithOut = []
+	acceptedAnswerIds = ""
+
+	for questionObject in r['items']:
 		
+		# print questionObject.keys()
+		questionInfo = {};
+		#print questionObject['score']
+		body = questionObject['body']
+		if "accepted_answer_id" in questionObject:
+			info = getStats(body)
+			info["viewCount"] = questionObject["view_count"]
+			#info["link"] = questionObject["link"]
+			info["acceptedAnswerId"] = questionObject["accepted_answer_id"]
+			acceptedAnswerIds += str(questionObject["accepted_answer_id"]) + ";" # answers-by-ids documentation page says "{ids} can contain up to 100 semicolon delimited ids"
 
-pp.pprint(questionsWithAccepted)
+			info["acceptedAnswerScore"] = getAcceptedAnswerScore(r2, questionObject["accepted_answer_id"])
+			questionsWithAccepted.append(info)
+		else:
+			info = getStats(body)
+			info["viewCount"] = questionObject["view_count"]
+			questionsWithOut.append(info)
 
+	# pp.pprint(len(questionsWithAccepted))
+	# pp.pprint(len(questionsWithOut))
 
+	allquestions += questionsWithAccepted
+	# pickle.dump(questionsWithAccepted, open("questionsWithAccepted.txt", "wr"))
 
+	### Getting the answers -- https://api.stackexchange.com/docs/answers-by-ids
+	# print acceptedAnswerIds[:-1] # indexing [:-1] because the API call doesn't want the {ids} string to end with a semicolon
+	urlForAcceptedAnswerIds = url + '/2.2/answers/' + acceptedAnswerIds[:-1]  + '?order=desc&sort=activity&site=stackoverflow&filter=withbody'
+	# print urlForAcceptedAnswerIds
+pp.pprint(allquestions)
 
+	# r2 = requests.get(urlForAcceptedAnswerIds).json()
+	# pickle.dump(r2, open("acceptedAnswers"+str(i)+".txt", "wr"))
 
-
-# for key in r.items:
-# 	print key
-# print urllib2.urlopen(url).read()index, 
+	# r2 = pickle.load(open("acceptedAnswers"+str(i)+".txt"))
+	# pp.pprint(r2['items'])
+	# pp.pprint(r2['items'][0]["answer_id"])
+	# print getAcceptedAnswerScore(r2, 44012152)
+	# print getAcceptedAnswerScore(r2, 43723651)
+	# print getAcceptedAnswerScore(r2, 43988809)
