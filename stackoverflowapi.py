@@ -97,17 +97,19 @@ questionsWithOut = []
 
 
 for questionObject in r['items']:
-	#print questionObject.keys()
+	# print questionObject.keys()
 	questionInfo = {};
 
 	#print questionObject['score']
 	body = questionObject['body']
 	if "accepted_answer_id" in questionObject:
 		info = getStats(body)
+		info["viewCount"] = questionObject["view_count"]
 		info["acceptedAnswerId"] = questionObject["accepted_answer_id"]
 		questionsWithAccepted.append(info)
 	else:
 		info = getStats(body)
+		info["viewCount"] = questionObject["view_count"]
 		questionsWithOut.append(info)
 		
 
