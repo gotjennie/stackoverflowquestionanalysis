@@ -138,10 +138,11 @@ for i in range(5):
 	
 	urlForAcceptedAnswerIds = url + '/2.2/answers/' + acceptedAnswerIds[:-1]  + '?pagesize=100&order=desc&sort=activity&site=stackoverflow&filter=withbody'	
 	# print urlForAcceptedAnswerIds
-	r2 = requests.get(urlForAcceptedAnswerIds).json()
-	pickle.dump(r2, open("acceptedAnswers"+str(i)+".txt", "wr"))
+	# r2 = requests.get(urlForAcceptedAnswerIds).json()
+	# pickle.dump(r2, open("acceptedAnswers"+str(i)+".txt", "wr"))
 
 pp.pprint(allquestions)
+pickle.dump(allquestions, open("allData.text", "wr"))
 
 	
 	# r2 = pickle.load(open("acceptedAnswers"+str(i)+".txt"))
