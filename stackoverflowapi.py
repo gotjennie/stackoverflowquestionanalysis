@@ -119,6 +119,8 @@ for i in range(5):
 			acceptedAnswerIds += str(questionObject["accepted_answer_id"]) + ";" # answers-by-ids documentation page says "{ids} can contain up to 100 semicolon delimited ids"
 
 			info["acceptedAnswerScore"] = getAcceptedAnswerScore(r2, questionObject["accepted_answer_id"])
+
+
 			questionsWithAccepted.append(info)
 		else:
 			info = getStats(body)
@@ -133,13 +135,15 @@ for i in range(5):
 
 	### Getting the answers -- https://api.stackexchange.com/docs/answers-by-ids
 	# print acceptedAnswerIds[:-1] # indexing [:-1] because the API call doesn't want the {ids} string to end with a semicolon
-	urlForAcceptedAnswerIds = url + '/2.2/answers/' + acceptedAnswerIds[:-1]  + '?order=desc&sort=activity&site=stackoverflow&filter=withbody'
+	
+	urlForAcceptedAnswerIds = url + '/2.2/answers/' + acceptedAnswerIds[:-1]  + '?pagesize=100&order=desc&sort=activity&site=stackoverflow&filter=withbody'	
 	# print urlForAcceptedAnswerIds
+	r2 = requests.get(urlForAcceptedAnswerIds).json()
+	pickle.dump(r2, open("acceptedAnswers"+str(i)+".txt", "wr"))
+
 pp.pprint(allquestions)
 
-	# r2 = requests.get(urlForAcceptedAnswerIds).json()
-	# pickle.dump(r2, open("acceptedAnswers"+str(i)+".txt", "wr"))
-
+	
 	# r2 = pickle.load(open("acceptedAnswers"+str(i)+".txt"))
 	# pp.pprint(r2['items'])
 	# pp.pprint(r2['items'][0]["answer_id"])
