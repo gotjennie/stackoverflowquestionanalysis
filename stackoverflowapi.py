@@ -80,26 +80,27 @@ def getStats(body):
 	return info
 
 def getAcceptedAnswerScore(acceptedAnswers, current_accepted_answer_id):
+	# pp.pprint(acceptedAnswers)
 	for d in acceptedAnswers['items']:
 		if d['answer_id'] == current_accepted_answer_id:
 			return d['score']
 	return None
 
 allquestions = []
-for i in range(20):
+for i in range(21, 51):
 	i = i+1
 	url = "https://api.stackexchange.com"
 	customFiltering = "/2.2/questions?page="+str(i)+"&pagesize=100&order=desc&sort=votes&tagged=python&site=stackoverflow&filter=!9YdnSIN18"
 	urlForQuestions = url+ customFiltering
 
 	# # COMMENT ATERWARDS
-	r = requests.get(urlForQuestions).json()
-	pickle.dump(r, open("sortVotes"+str(i)+".txt", "wr"))
+	# r = requests.get(urlForQuestions).json()
+	# pickle.dump(r, open("sortVotes"+str(i)+".txt", "wr"))
 
 	# UNCOMMENT AFTERWARDS
-	# print i
-	# r = pickle.load(open("sortVotes"+str(i)+".txt"))
-	# r2 = pickle.load(open("acceptedAnswers"+str(i)+".txt"))
+	print i
+	r = pickle.load(open("sortVotes"+str(i)+".txt"))
+	r2 = pickle.load(open("acceptedAnswers"+str(i)+".txt"))
 
 	questionsWithAccepted = []
 	questionsWithOut = []
@@ -116,7 +117,7 @@ for i in range(20):
 			acceptedAnswerIds += str(questionObject["accepted_answer_id"]) + ";" # answers-by-ids documentation page says "{ids} can contain up to 100 semicolon delimited ids"
 
 			# UNCOMMENT AFTERWARDS
-			# info["acceptedAnswerScore"] = getAcceptedAnswerScore(r2, questionObject["accepted_answer_id"])
+			info["acceptedAnswerScore"] = getAcceptedAnswerScore(r2, questionObject["accepted_answer_id"])
 
 			questionsWithAccepted.append(info)
 		else:
@@ -128,12 +129,12 @@ for i in range(20):
 
 	### Getting the answers -- https://api.stackexchange.com/docs/answers-by-ids
 	# print acceptedAnswerIds[:-1] # indexing [:-1] because the API call doesn't want the {ids} string to end with a semicolon
-	urlForAcceptedAnswerIds = url + '/2.2/answers/' + acceptedAnswerIds[:-1]  + '?pagesize=500&order=desc&sort=activity&site=stackoverflow&filter=withbody'
+	urlForAcceptedAnswerIds = url + '/2.2/answers/' + acceptedAnswerIds[:-1]  + '?pagesize=100&order=desc&sort=activity&site=stackoverflow&filter=withbody'
 
 	# COMMENT AFTERWARDS
-	print urlForAcceptedAnswerIds
-	r2 = requests.get(urlForAcceptedAnswerIds).json()
-	pickle.dump(r2, open("acceptedAnswers"+str(i)+".txt", "wr"))
+	# print urlForAcceptedAnswerIds
+	# r2 = requests.get(urlForAcceptedAnswerIds).json()
+	# pickle.dump(r2, open("acceptedAnswers"+str(i)+".txt", "wr"))
 
 pp.pprint(allquestions)
 pickle.dump(allquestions, open("allData.text", "wr"))
