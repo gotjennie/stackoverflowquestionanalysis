@@ -1,0 +1,13 @@
+(dp0
+Verror_id
+p1
+I400
+sVerror_message
+p2
+Vpagesize
+p3
+sVerror_name
+p4
+Vbad_parameter
+p5
+s.
