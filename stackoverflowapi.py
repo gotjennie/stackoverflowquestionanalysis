@@ -3,7 +3,7 @@ import requests
 import json
 import pickle
 import pprint as pp
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 import re
 
 def getCodeInfo(body):
@@ -59,7 +59,7 @@ def getEnglish(body):
 	body = re.sub(codeRegex, '', body)
 	body = re.sub(linkRegex, '', body)
 
-	body = BeautifulSoup(body).text
+	body = BeautifulSoup(body, "lxml").text
 	return body
 
 def findTextBetweenTags(body, startTagString, endTagString):
@@ -85,28 +85,29 @@ def getAcceptedAnswerScore(acceptedAnswers, current_accepted_answer_id):
 			return d['score']
 	return None
 
-
-
-
  # re: Getting the answers -- this string will be used for the API call for accepted answers.
 allquestions = []
-for i in range(5):
+for i in range(20):
 	i = i+1
 	url = "https://api.stackexchange.com"
 	customFiltering = "/2.2/questions?page="+str(i)+"&pagesize=100&order=desc&sort=votes&tagged=python&site=stackoverflow&filter=!9YdnSIN18"
 	urlForQuestions = url+ customFiltering
 
+	# # COMMENT ATERWARDS
 	# r = requests.get(urlForQuestions).json()
 	# pickle.dump(r, open("sortVotes"+str(i)+".txt", "wr"))
 
+	# UNCOMMENT AFTERWARDS
+	print i
 	r = pickle.load(open("sortVotes"+str(i)+".txt"))
 	r2 = pickle.load(open("acceptedAnswers"+str(i)+".txt"))
+
 	questionsWithAccepted = []
 	questionsWithOut = []
 	acceptedAnswerIds = ""
 
 	for questionObject in r['items']:
-		
+
 		# print questionObject.keys()
 		questionInfo = {};
 		#print questionObject['score']
@@ -118,6 +119,7 @@ for i in range(5):
 			info["acceptedAnswerId"] = questionObject["accepted_answer_id"]
 			acceptedAnswerIds += str(questionObject["accepted_answer_id"]) + ";" # answers-by-ids documentation page says "{ids} can contain up to 100 semicolon delimited ids"
 
+			# UNCOMMENT AFTERWARDS
 			info["acceptedAnswerScore"] = getAcceptedAnswerScore(r2, questionObject["accepted_answer_id"])
 
 
@@ -135,8 +137,10 @@ for i in range(5):
 
 	### Getting the answers -- https://api.stackexchange.com/docs/answers-by-ids
 	# print acceptedAnswerIds[:-1] # indexing [:-1] because the API call doesn't want the {ids} string to end with a semicolon
-	
-	urlForAcceptedAnswerIds = url + '/2.2/answers/' + acceptedAnswerIds[:-1]  + '?pagesize=100&order=desc&sort=activity&site=stackoverflow&filter=withbody'	
+
+	urlForAcceptedAnswerIds = url + '/2.2/answers/' + acceptedAnswerIds[:-1]  + '?pagesize=500&order=desc&sort=activity&site=stackoverflow&filter=withbody'
+
+	# COMMENT AFTERWARDS
 	# print urlForAcceptedAnswerIds
 	# r2 = requests.get(urlForAcceptedAnswerIds).json()
 	# pickle.dump(r2, open("acceptedAnswers"+str(i)+".txt", "wr"))
@@ -144,7 +148,6 @@ for i in range(5):
 pp.pprint(allquestions)
 pickle.dump(allquestions, open("allData.text", "wr"))
 
-	
 	# r2 = pickle.load(open("acceptedAnswers"+str(i)+".txt"))
 	# pp.pprint(r2['items'])
 	# pp.pprint(r2['items'][0]["answer_id"])
